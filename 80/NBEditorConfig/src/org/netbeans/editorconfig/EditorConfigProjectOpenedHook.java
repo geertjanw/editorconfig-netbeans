@@ -78,6 +78,10 @@ public class EditorConfigProjectOpenedHook implements LookupProvider {
                                     doIndentSize(
                                             dobj.getPrimaryFile(),
                                             Integer.valueOf(l.get(i).getVal()));
+                                } else if (l.get(i).getKey().equals("max_line_length")) {
+                                    doTextLimitWidth(
+                                            dobj.getPrimaryFile(),
+                                            Integer.valueOf(l.get(i).getVal()));
                                 }
                             }
                         } catch (PythonException ex) {
@@ -87,11 +91,23 @@ public class EditorConfigProjectOpenedHook implements LookupProvider {
                         }
                     }
                     public static final String indentSize = SimpleValueNames.INDENT_SHIFT_WIDTH;
+                    public static final String textLimitWidth = SimpleValueNames.TEXT_LIMIT_WIDTH;
                     private void doIndentSize(FileObject file, int value) {
                         Project p = FileOwnerQuery.getOwner(file);
                         String pName = p.getProjectDirectory().getName();
                         Preferences node = NbPreferences.forModule(IndentUtils.class).node(pName).node(file.getName());
                         node.putInt(indentSize, value);
+                        try {
+                            node.flush();
+                        } catch (BackingStoreException ex) {
+                            Exceptions.printStackTrace(ex);
+                        }
+                    }
+                    private void doTextLimitWidth(FileObject file, int value) {
+                        Project p = FileOwnerQuery.getOwner(file);
+                        String pName = p.getProjectDirectory().getName();
+                        Preferences node = NbPreferences.forModule(IndentUtils.class).node(pName).node(file.getName());
+                        node.putInt(textLimitWidth, value);
                         try {
                             node.flush();
                         } catch (BackingStoreException ex) {
