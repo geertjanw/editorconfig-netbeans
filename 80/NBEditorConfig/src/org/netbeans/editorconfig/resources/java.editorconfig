@@ -4,5 +4,5 @@
 [*.java]
 indent_style = tab
 indent_size = 4
-trim_trailing_witespace = true
+trim_trailing_whitespace = true
 max_line_length = 50

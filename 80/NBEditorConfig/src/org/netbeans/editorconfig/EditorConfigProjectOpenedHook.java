@@ -28,7 +28,7 @@ import org.openide.util.lookup.Lookups;
     "org-netbeans-modules-web-clientproject",
     "org-netbeans-modules-maven",
     "org-netbeans-modules-apisupport-project"}
-)   
+)
 public class EditorConfigProjectOpenedHook implements LookupProvider {
     @Override
     public Lookup createAdditionalLookup(Lookup lookup) {
@@ -86,6 +86,10 @@ public class EditorConfigProjectOpenedHook implements LookupProvider {
                                     doIndentStyle(
                                             dobj.getPrimaryFile(),
                                             l.get(i).getVal());
+                                } else if (l.get(i).getKey().equals("trim_trailing_whitespace")) {
+                                    doTrimTrailingWhitespace(
+                                            dobj.getPrimaryFile(),
+                                            l.get(i).getVal());
                                 }
                             }
                         } catch (PythonException ex) {
@@ -97,6 +101,7 @@ public class EditorConfigProjectOpenedHook implements LookupProvider {
                     public static final String indentSize = SimpleValueNames.INDENT_SHIFT_WIDTH;
                     public static final String textLimitWidth = SimpleValueNames.TEXT_LIMIT_WIDTH;
                     public static final String expandTabs = SimpleValueNames.EXPAND_TABS;
+                    public static final String trailingWhitespace = SimpleValueNames.ON_SAVE_REMOVE_TRAILING_WHITESPACE;
                     private void doIndentSize(FileObject file, int value) {
                         Project p = FileOwnerQuery.getOwner(file);
                         String pName = p.getProjectDirectory().getName();
@@ -113,6 +118,21 @@ public class EditorConfigProjectOpenedHook implements LookupProvider {
                         String pName = p.getProjectDirectory().getName();
                         Preferences node = NbPreferences.forModule(IndentUtils.class).node(pName).node(file.getName());
                         node.putInt(textLimitWidth, value);
+                        try {
+                            node.flush();
+                        } catch (BackingStoreException ex) {
+                            Exceptions.printStackTrace(ex);
+                        }
+                    }
+                    private void doTrimTrailingWhitespace(FileObject file, String value) {
+                        Project p = FileOwnerQuery.getOwner(file);
+                        String pName = p.getProjectDirectory().getName();
+                        Preferences node = NbPreferences.forModule(IndentUtils.class).node(pName).node(file.getName());
+                        if (value.equals("true")) {
+                            node.put(trailingWhitespace, "always");
+                        } else {
+                            node.put(trailingWhitespace, "never");
+                        }
                         try {
                             node.flush();
                         } catch (BackingStoreException ex) {
