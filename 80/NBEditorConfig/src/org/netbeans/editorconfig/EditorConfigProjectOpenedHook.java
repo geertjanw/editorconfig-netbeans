@@ -28,7 +28,7 @@ import org.openide.util.lookup.Lookups;
     "org-netbeans-modules-web-clientproject",
     "org-netbeans-modules-maven",
     "org-netbeans-modules-apisupport-project"}
-)
+)   
 public class EditorConfigProjectOpenedHook implements LookupProvider {
     @Override
     public Lookup createAdditionalLookup(Lookup lookup) {
@@ -82,6 +82,10 @@ public class EditorConfigProjectOpenedHook implements LookupProvider {
                                     doTextLimitWidth(
                                             dobj.getPrimaryFile(),
                                             Integer.valueOf(l.get(i).getVal()));
+                                } else if (l.get(i).getKey().equals("indent_style")) {
+                                    doIndentStyle(
+                                            dobj.getPrimaryFile(),
+                                            l.get(i).getVal());
                                 }
                             }
                         } catch (PythonException ex) {
@@ -92,6 +96,7 @@ public class EditorConfigProjectOpenedHook implements LookupProvider {
                     }
                     public static final String indentSize = SimpleValueNames.INDENT_SHIFT_WIDTH;
                     public static final String textLimitWidth = SimpleValueNames.TEXT_LIMIT_WIDTH;
+                    public static final String expandTabs = SimpleValueNames.EXPAND_TABS;
                     private void doIndentSize(FileObject file, int value) {
                         Project p = FileOwnerQuery.getOwner(file);
                         String pName = p.getProjectDirectory().getName();
@@ -108,6 +113,21 @@ public class EditorConfigProjectOpenedHook implements LookupProvider {
                         String pName = p.getProjectDirectory().getName();
                         Preferences node = NbPreferences.forModule(IndentUtils.class).node(pName).node(file.getName());
                         node.putInt(textLimitWidth, value);
+                        try {
+                            node.flush();
+                        } catch (BackingStoreException ex) {
+                            Exceptions.printStackTrace(ex);
+                        }
+                    }
+                    private void doIndentStyle(FileObject file, String value) {
+                        Project p = FileOwnerQuery.getOwner(file);
+                        String pName = p.getProjectDirectory().getName();
+                        Preferences node = NbPreferences.forModule(IndentUtils.class).node(pName).node(file.getName());
+			if (value.equals("tab")) {
+			    node.putBoolean(expandTabs, false);
+			} else {
+			    node.putBoolean(expandTabs, true);
+			}
                         try {
                             node.flush();
                         } catch (BackingStoreException ex) {
