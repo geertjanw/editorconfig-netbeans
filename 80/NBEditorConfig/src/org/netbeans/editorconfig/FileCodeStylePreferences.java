@@ -12,34 +12,24 @@ import org.openide.util.lookup.ServiceProvider;
 @ServiceProvider(service = CodeStylePreferences.Provider.class, position = 1)
 public final class FileCodeStylePreferences implements CodeStylePreferences.Provider {
     @Override
-    public Preferences forFile(FileObject fo, String string) {
-        return singleton.forFile(fo, string);
+    public Preferences forDocument(Document doc, String mimeType) {
+        Preferences node = null;
+        FileObject fo = findFileObject(doc);
+        if (fo != null) {
+            Project p = FileOwnerQuery.getOwner(fo);
+            if (p != null) {
+                String foName = fo.getName();
+                String projectName = p.getProjectDirectory().getName();
+                node = NbPreferences.forModule(IndentUtils.class).node(projectName).node(foName);
+            }
+        }
+        return node;
     }
     @Override
-    public Preferences forDocument(Document dcmnt, String string) {
-        return singleton.forDocument(dcmnt, string);
+    public Preferences forFile(FileObject fo, String mimeType) {
+        //not used:
+        return null;
     }
-    private static final CodeStylePreferences.Provider singleton = new CodeStylePreferences.Provider() {
-        @Override
-        public Preferences forDocument(Document doc, String mimeType) {
-            Preferences node = null;
-            FileObject fo = findFileObject(doc);
-            if (fo != null) {
-                Project p = FileOwnerQuery.getOwner(fo);
-                if (p != null) {
-                    String foName = fo.getName();
-                    String projectName = p.getProjectDirectory().getName();
-                    node = NbPreferences.forModule(IndentUtils.class).node(projectName).node(foName);
-                }
-            }
-            return node;
-        }
-        @Override
-        public Preferences forFile(FileObject fo, String mimeType) {
-            //not used:
-            return null;
-        }
-    };
     private static FileObject findFileObject(Document doc) {
         if (doc != null) {
             Object sdp = doc.getProperty(Document.StreamDescriptionProperty);
